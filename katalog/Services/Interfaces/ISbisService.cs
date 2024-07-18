@@ -1,7 +1,11 @@
-﻿namespace katalog.Services.Interfaces
+﻿using katalog.SbisData;
+
+namespace katalog.Services.Interfaces
 {
     public interface ISbisService
     {
-        public Task Auth(string login, string password);
+        public Task Auth();
+
+        public Task<List<Product>?> GetCategories();
     }
 }

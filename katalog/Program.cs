@@ -1,11 +1,16 @@
+using katalog.Services;
+using katalog.Services.Interfaces;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
+builder.Services.AddSession();
+builder.Services.AddSingleton<ISbisService, SbisService>();
 
 var app = builder.Build();
-
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -22,6 +27,10 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapRazorPages();
+app.UseSession();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Sbis}/{action=Index}");
 
 app.Run();

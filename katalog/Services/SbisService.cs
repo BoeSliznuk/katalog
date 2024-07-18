@@ -14,13 +14,15 @@ namespace katalog.Services
     {
         private string? token;
         private string? sid;
+        private string? pointId;
+        private string? priceListId;
         private string baseUrl = "https://api.sbis.ru";
         private string authUrl = "https://online.sbis.ru";
         private string clientId = "3067279040044919";
         private string appSecret = "KM59TNUJ17XGC4MTNX9ZUCNB";
         private string secretKey = "8AcBv0Gw5wi5jZoJqgqyMkLQSLwynBk8Y4pMmRMiAjDBMHLfeVv015uvL3ZCBRbMf1dU0D8n1VlgaCwKBUxKogSXaynBjgsV6u4DfO9l3TxXdRbvu6Kd6j";
 
-        public async Task Auth(string login, string password)
+        public async Task Auth()
         {
             if (String.IsNullOrEmpty(token))
             {
@@ -31,15 +33,87 @@ namespace katalog.Services
         }
         private async Task<AuthResponse?> GetServiceToken()
         {
-            string authUrl = "oauth/service";
+            var client = new HttpClient();
+            var request = new AuthRequest()
+            {
+                ClientId = clientId,
+                AppSecret = appSecret,
+                SecretKey = secretKey
+            };
+            using (var httpRequest = CreateHttpRequest(verb: HttpMethod.Post, url: "https://online.sbis.ru/oauth/service/"))
+            {
+                httpRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var options = new JsonSerializerOptions()
+                { WriteIndented = true };
+                string data = JsonSerializer.Serialize(request, options);
+                using (var httpContent = new StringContent(data, Encoding.UTF8, "application/json"))
+                {
+                    httpRequest.Content = httpContent;
+                    Console.WriteLine(httpRequest);
+                    Console.WriteLine(data);
+                    using (var httpResponse = await client.SendAsync(httpRequest))
+                    {
+                        httpResponse.EnsureSuccessStatusCode();
+                        string apiResponse = await httpResponse.Content.ReadAsStringAsync();
+                        return JsonSerializer.Deserialize<AuthResponse>(apiResponse);
+                    }
+                }
+            }
+        }
+        private async Task GetPointId()
+        {
+            if (pointId == null)
+            {
+                string pointUrl = "retail/point/list";
+                var response = await SendRequestAsync<PointResponse>(HttpMethod.Get, pointUrl);
+                if (response != null && response.Points.Count > 0)
+                {
+                    pointId = response.Points.FirstOrDefault().Id.ToString();
+                }
+            }
+        }
+        private async Task GetPriceListId()
+        {
+            if (priceListId == null)
+            {
+                await GetPointId();
+                string priceListUrl = "retail/nomenclature/price-list";
+                NameValueCollection requestParams = new()
+              {
+                { "pointId", pointId },
+                { "actualDate", DateTime.Today.ToShortDateString() }
+              };
+
+                var response = await SendRequestAsync<PriceListResponse>(HttpMethod.Get, priceListUrl, requestParams);
+                if (response != null && response.PriceLists.Count > 0)
+                {
+                    priceListId = response.PriceLists.FirstOrDefault().Id.ToString();
+                }
+            }
+        }
+        private async Task<List<Product>?> GetCatalog()
+        {
+            await GetPriceListId();
+            string catalogUrl = "retail/nomenclature/list";
             NameValueCollection requestParams = new()
               {
-                { "app_client_id", clientId },
-                { "app_secret", appSecret },
-                { "secret_key", secretKey }
+                { "pointId", pointId },
+                { "priceListId", priceListId },
+                {"onlyPublished", "true" },
+                {"pageSize", "10000" }
               };
-            var request = await SendRequestAsync<AuthResponse>(HttpMethod.Post, authUrl, requestParams, true);
-            return request;
+            var response = await SendRequestAsync<ProductResponse>(HttpMethod.Get, catalogUrl, requestParams);
+            if (response != null && response.Products.Count > 0)
+            {
+                return response.Products;
+            }
+            return null;
+        }
+        public async Task<List<Product>?> GetCategories()
+        {
+            List<Product>? allProducts = await GetCatalog();
+            if (allProducts == null) return null;
+            return allProducts.Where(x => x.IsParent != null && (bool)x.IsParent).ToList();
         }
         private string? SerializeParameters(NameValueCollection parameters)
         {
@@ -95,6 +169,7 @@ namespace katalog.Services
             {
                 url += "?" + queryString;
             }
+            Console.WriteLine(url);
             return url;
         }
         private HttpRequestMessage CreateHttpRequest(HttpMethod verb, string url)
