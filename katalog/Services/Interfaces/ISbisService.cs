@@ -2,5 +2,6 @@
 {
     public interface ISbisService
     {
+        public Task Auth(string login, string password);
     }
 }

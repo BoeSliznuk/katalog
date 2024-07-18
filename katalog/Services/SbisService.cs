@@ -5,23 +5,37 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text;
+using static System.Net.WebRequestMethods;
+using katalog.SbisData;
 
 namespace katalog.Services
 {
     public class SbisService : ISbisService
     {
         private string? token;
-        private async Task<string?> GetServiceToken(string login, string password)
+        private string baseUrl = "https://online.sbis.ru";
+        private string clientId = "3067279040044919";
+        private string appSecret = "KM59TNUJ17XGC4MTNX9ZUCNB";
+        private string secretKey = "8AcBv0Gw5wi5jZoJqgqyMkLQSLwynBk8Y4pMmRMiAjDBMHLfeVv015uvL3ZCBRbMf1dU0D8n1VlgaCwKBUxKogSXaynBjgsV6u4DfO9l3TxXdRbvu6Kd6j";
+
+        public async Task Auth(string login, string password)
         {
+            if (String.IsNullOrEmpty(token))
+            {
+                token = await GetServiceToken();
+            }
+        }
+        private async Task<string?> GetServiceToken()
+        {
+            string authUrl = "oauth/service";
             NameValueCollection requestParams = new()
               {
-                { "app_client_id", "3067279040044919" },
-                { "app_secret", "KM59TNUJ17XGC4MTNX9ZUCNB" },
-                { "secret_key", "8AcBv0Gw5wi5jZoJqgqyMkLQSLwynBk8Y4pMmRMiAjDBMHLfeVv015uvL3ZCBRbMf1dU0D8n1VlgaCwKBUxKogSXaynBjgsV6u4DfO9l3TxXdRbvu6Kd6j" }
+                { "app_client_id", clientId },
+                { "app_secret", appSecret },
+                { "secret_key", secretKey }
               };
-            string json = SerializeParameters(requestParams);
-            var request = await SendPostRequestAsync<string>("https://online.sbis.ru/oauth/service/", json);
-            return request;
+            var request = await SendRequestAsync<AuthResponse>(HttpMethod.Post, authUrl, requestParams);
+            return request?.AccessToken;
         }
         private string? SerializeParameters(NameValueCollection parameters)
         {
@@ -37,36 +51,56 @@ namespace katalog.Services
                 return null;
             }
         }
-        private async Task<T?> SendPostRequestAsync<T>(string url, string data)
+        private async Task<T?> SendRequestAsync<T>(HttpMethod httpMethod, string entity, NameValueCollection parameters)
         {
             var client = new HttpClient();
-            using (var httpRequest = CreateHttpRequest(verb: HttpMethod.Post, url: url))
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var queryString = SerializeParameters(parameters);
+            Console.WriteLine(queryString);
+            var url = BuildUrl(entity: entity, queryString: queryString);
+            using (var httpRequest = CreateHttpRequest(verb: httpMethod, url: url))
+            using (var httpResponse = await client.SendAsync(httpRequest))
             {
-                httpRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var options = new JsonSerializerOptions()
-                { WriteIndented = true };
-                //string data = System.Text.Json.JsonSerializer.Serialize((Tarif)request, options);
-                using (var httpContent = new StringContent(data, Encoding.UTF8, "application/json"))
-                {
-                    httpRequest.Content = httpContent;
-                    Console.WriteLine(httpRequest);
-                    Console.WriteLine(data);
-                    using (var httpResponse = await client.SendAsync(httpRequest))
-                    {
-                        httpResponse.EnsureSuccessStatusCode();
-                        string apiResponse = await httpResponse.Content.ReadAsStringAsync();
-                        return System.Text.Json.JsonSerializer.Deserialize<T>(apiResponse);
-                    }
-                }
+                httpResponse.EnsureSuccessStatusCode();
+                string apiResponse = await httpResponse.Content.ReadAsStringAsync();
+                Console.WriteLine(apiResponse);
+                return System.Text.Json.JsonSerializer.Deserialize<T>(apiResponse);
             }
+        }
+        private async Task<T?> SendRequestAsync<T>(HttpMethod httpMethod, string entity)
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var url = BuildUrl(entity: entity);
+            using (var httpRequest = CreateHttpRequest(verb: httpMethod, url: url))
+            using (var httpResponse = await client.SendAsync(httpRequest))
+            {
+                httpResponse.EnsureSuccessStatusCode();
+                string apiResponse = await httpResponse.Content.ReadAsStringAsync();
+                Console.WriteLine(apiResponse);
+                return System.Text.Json.JsonSerializer.Deserialize<T>(apiResponse);
+            }
+        }
+        private string BuildUrl(string entity, string? queryString = null)
+        {
+            var url = baseUrl;
+            if (!String.IsNullOrEmpty(entity))
+            {
+                url = String.Format("{0}/{1}", url, entity);
+            }
+            if (queryString != null)
+            {
+                url += "?" + queryString;
+            }
+            return url;
         }
         private HttpRequestMessage CreateHttpRequest(HttpMethod verb, string url)
         {
             var request = new HttpRequestMessage(verb, url);
-            //if (!string.IsNullOrWhiteSpace(token))
-            //{
-            //    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.token);
-            //}
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                request.Headers.Add("X-SBISAccessToken", this.token);
+            }
             return request;
         }
     }
