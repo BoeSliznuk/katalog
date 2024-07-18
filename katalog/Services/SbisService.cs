@@ -13,6 +13,7 @@ namespace katalog.Services
     public class SbisService : ISbisService
     {
         private string? token;
+        private string? sid;
         private string baseUrl = "https://online.sbis.ru";
         private string clientId = "3067279040044919";
         private string appSecret = "KM59TNUJ17XGC4MTNX9ZUCNB";
@@ -22,10 +23,12 @@ namespace katalog.Services
         {
             if (String.IsNullOrEmpty(token))
             {
-                token = await GetServiceToken();
+                var response = await GetServiceToken();
+                token = response?.AccessToken;
+                sid = response?.Sid;
             }
         }
-        private async Task<string?> GetServiceToken()
+        private async Task<AuthResponse?> GetServiceToken()
         {
             string authUrl = "oauth/service";
             NameValueCollection requestParams = new()
@@ -35,7 +38,7 @@ namespace katalog.Services
                 { "secret_key", secretKey }
               };
             var request = await SendRequestAsync<AuthResponse>(HttpMethod.Post, authUrl, requestParams);
-            return request?.AccessToken;
+            return request;
         }
         private string? SerializeParameters(NameValueCollection parameters)
         {
