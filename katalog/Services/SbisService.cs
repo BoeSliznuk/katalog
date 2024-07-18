@@ -214,6 +214,69 @@ namespace katalog.Services
             if (allProducts == null) return null;
             return allProducts.Where(x => x.HierarchicalParent == hierarchicalParent).ToList();
         }
+        public async Task<List<Balances>> GetRemains()
+        {
+            List<Product>? allProducts = await GetProducts();
+            List<Warehouse> allWarehouses = await GetWarehouses();
+            var comps = await GetCompanies();
+            string warearray = "";
+            foreach (var item in allWarehouses)
+            {
+                warearray += item.Id;
+                warearray += ", ";
+            }
+            string itemarray = "";
+            foreach(var item in allProducts)
+            {
+                itemarray += item.Id;
+                itemarray += ", ";
+            }
+            Console.WriteLine("[" +  itemarray.Remove(itemarray.Length - 2) + "]");
+            Console.WriteLine("[" +  warearray.Remove(warearray.Length - 2) + "]");
+            Console.WriteLine(comps[0].Id.ToString());
+            string catalogUrl = "retail/nomenclature/balances";
+            NameValueCollection requestParams = new()
+              {
+                { "nomenclatures", "[" +  itemarray.Remove(itemarray.Length - 2) + "]"},
+                { "warehouses", "[" +  warearray.Remove(warearray.Length - 2) + "]" },
+                {"companies", "[" +comps[0].Id.ToString() + "]" },
+              };
+            var response = await SendRequestAsync<BalanceResponse>(HttpMethod.Get, catalogUrl, requestParams);
+            var resposereturn = response.Balances;
+            if (resposereturn != null)
+            {
+                return resposereturn;
+            }
+            return null;
+        }
+        public async Task<List<Company>> GetCompanies()
+        {
+
+            string catalogUrl = "retail/company/list";
+            var response = await SendRequestAsync<CompanyResponse>(HttpMethod.Get, catalogUrl);
+            if (response != null && response.Companies.Count() > 0)
+            {
+                return response.Companies;
+            }
+            return null;
+            Console.WriteLine(response);
+        }
+        public async Task<List<Warehouse>> GetWarehouses()
+        {
+            var companies = await GetCompanies();
+            string catalogUrl = "retail/company/warehouses";
+            NameValueCollection requestParams = new()
+              {
+                { "companyId",  companies[0].Id.ToString()},
+              };
+            var response = await SendRequestAsync<WarehousesResponse>(HttpMethod.Get, catalogUrl, requestParams);
+            Console.WriteLine(response);
+            if (response != null && response.Warehouses.Count() > 0)
+            {
+                return response.Warehouses;
+            }
+            return null;
+        }
         public async Task<List<Product>?> GetProductsSearched(string search)
         {
             List<Product>? allProducts = await GetCatalogByName(search);

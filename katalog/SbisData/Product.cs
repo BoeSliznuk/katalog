@@ -25,5 +25,8 @@ namespace katalog.SbisData
         [JsonPropertyName("published")]
         public bool Published { get; set; }
 
+
+        public int? ProdCount { get; set; }
+        
     }
 }
