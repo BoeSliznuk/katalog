@@ -19,12 +19,15 @@ namespace katalog.Controllers
             await _sbisService.Auth();
             List<Product> categories =  await _sbisService.GetCategories();
             List<Product> products = await _sbisService.GetProducts();
-            foreach (var product in products)
-            {
-                Console.WriteLine(product.Name);
-            }
             var vm = new CatalogViewModel() { Categories = categories, Products = products };
             return View(vm);
+        }
+        [HttpGet("/Image")]
+        public async Task<IActionResult> Image(string url)
+        {
+            await _sbisService.Auth();
+            var response = await _sbisService.GetImage(url);
+            return File(response, "image/png");
         }
     }
 }

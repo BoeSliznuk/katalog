@@ -26,7 +26,7 @@
                 <div class="card shadow-sm">
                     @if (@item.Images != null)
                     {
-                        string image = "https://api.sbis.ru/retail" + item.Images.First();
+                        string image = "/Image?url=" + item.Images.First();
                         <img style="height: 365px; aspect-ratio: 1.5/2" src="@image" />
                     }
                     else

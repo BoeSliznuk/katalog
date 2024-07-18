@@ -17,7 +17,6 @@ namespace katalog.Services
         private string? pointId;
         private string? priceListId;
         private string baseUrl = "https://api.sbis.ru";
-        private string authUrl = "https://online.sbis.ru";
         private string clientId = "3067279040044919";
         private string appSecret = "KM59TNUJ17XGC4MTNX9ZUCNB";
         private string secretKey = "8AcBv0Gw5wi5jZoJqgqyMkLQSLwynBk8Y4pMmRMiAjDBMHLfeVv015uvL3ZCBRbMf1dU0D8n1VlgaCwKBUxKogSXaynBjgsV6u4DfO9l3TxXdRbvu6Kd6j";
@@ -130,12 +129,12 @@ namespace katalog.Services
                 return null;
             }
         }
-        private async Task<T?> SendRequestAsync<T>(HttpMethod httpMethod, string entity, NameValueCollection parameters, bool auth = false)
+        private async Task<T?> SendRequestAsync<T>(HttpMethod httpMethod, string entity, NameValueCollection parameters)
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var queryString = SerializeParameters(parameters);
-            var url = BuildUrl(entity: entity, queryString: queryString, auth);
+            var url = BuildUrl(entity: entity, queryString: queryString);
             using (var httpRequest = CreateHttpRequest(verb: httpMethod, url: url))
             using (var httpResponse = await client.SendAsync(httpRequest))
             {
@@ -159,9 +158,9 @@ namespace katalog.Services
                 return System.Text.Json.JsonSerializer.Deserialize<T>(apiResponse);
             }
         }
-        private string BuildUrl(string entity, string? queryString = null, bool auth = false)
+        private string BuildUrl(string entity, string? queryString = null)
         {
-            var url = auth? authUrl : baseUrl;
+            var url = baseUrl;
             if (!String.IsNullOrEmpty(entity))
             {
                 url = String.Format("{0}/{1}", url, entity);
@@ -195,6 +194,18 @@ namespace katalog.Services
             List<Product>? allProducts = await GetCatalog();
             if (allProducts == null) return null;
             return allProducts.Where(x => x.HierarchicalParent == hierarchicalParent).ToList();
+        }
+        public async Task<byte[]> GetImage(string url)
+        {
+            string imgUrl = "retail" + url;
+            var client = new HttpClient();
+            var requesrUrl = BuildUrl(entity: imgUrl);
+            using (var httpRequest = CreateHttpRequest(verb: HttpMethod.Get, url: requesrUrl))
+            using (var httpResponse = await client.SendAsync(httpRequest))
+            {
+                httpResponse.EnsureSuccessStatusCode();
+                return await httpResponse.Content.ReadAsByteArrayAsync();
+            }
         }
     }
 

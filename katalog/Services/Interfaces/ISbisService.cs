@@ -11,5 +11,7 @@ namespace katalog.Services.Interfaces
         public Task<List<Product>?> GetProducts();
 
         public Task<List<Product>?> GetProducts(int hierarchicalParent);
+
+        public Task<byte[]> GetImage(string url);
     }
 }
