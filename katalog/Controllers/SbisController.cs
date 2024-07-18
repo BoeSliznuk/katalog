@@ -18,18 +18,15 @@ namespace katalog.Controllers
         {
             await _sbisService.Auth();
             List<Product> categories =  await _sbisService.GetCategories();
-            List<Product> products = await _sbisService.GetProducts();
+            List<Product>? products = String.IsNullOrEmpty(search) ? products = await _sbisService.GetProducts() : await _sbisService.GetProductsSearched(search);
             List<Balances> balances = await _sbisService.GetRemains();
             foreach(var item in balances)
             {
-                products.Where(x => x.Id == item.Nomenclature).First().ProdCount = item.Balance;
+                if (products.Where(x => x.Id == item.Nomenclature).FirstOrDefault() != null)
+                {
+                    products.Where(x => x.Id == item.Nomenclature).First().ProdCount = item.Balance;
+                }
             }
-            foreach (var product in products)
-            {
-                Console.WriteLine(product.Name);
-            }
-            List<Product>? categories = await _sbisService.GetCategories();
-            List<Product>? products = String.IsNullOrEmpty(search)? products = await _sbisService.GetProducts() : await _sbisService.GetProductsSearched(search);
             var vm = new CatalogViewModel() { Categories = categories, Products = products };
             return View(vm);
         }
@@ -39,6 +36,14 @@ namespace katalog.Controllers
             await _sbisService.Auth();
             List<Product>? categories = await _sbisService.GetCategories();
             List<Product>? products = await _sbisService.GetProducts(parentId);
+            List<Balances> balances = await _sbisService.GetRemains();
+            foreach (var item in balances)
+            {
+                if (products.Where(x => x.Id == item.Nomenclature).FirstOrDefault() != null)
+                {
+                    products.Where(x => x.Id == item.Nomenclature).First().ProdCount = item.Balance;
+                }
+            }
             var vm = new CatalogViewModel() { Categories = categories, Products = products };
             return View(vm);
         }

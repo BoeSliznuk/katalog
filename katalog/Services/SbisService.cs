@@ -231,9 +231,6 @@ namespace katalog.Services
                 itemarray += item.Id;
                 itemarray += ", ";
             }
-            Console.WriteLine("[" +  itemarray.Remove(itemarray.Length - 2) + "]");
-            Console.WriteLine("[" +  warearray.Remove(warearray.Length - 2) + "]");
-            Console.WriteLine(comps[0].Id.ToString());
             string catalogUrl = "retail/nomenclature/balances";
             NameValueCollection requestParams = new()
               {
@@ -259,7 +256,6 @@ namespace katalog.Services
                 return response.Companies;
             }
             return null;
-            Console.WriteLine(response);
         }
         public async Task<List<Warehouse>> GetWarehouses()
         {
