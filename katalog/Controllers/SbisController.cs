@@ -14,11 +14,11 @@ namespace katalog.Controllers
         {
             _sbisService = sbisService;
         }
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string search)
         {
             await _sbisService.Auth();
-            List<Product>? categories =  await _sbisService.GetCategories();
-            List<Product>? products = await _sbisService.GetProducts();
+            List<Product>? categories = await _sbisService.GetCategories();
+            List<Product>? products = String.IsNullOrEmpty(search)? products = await _sbisService.GetProducts() : await _sbisService.GetProductsSearched(search);
             var vm = new CatalogViewModel() { Categories = categories, Products = products };
             return View(vm);
         }

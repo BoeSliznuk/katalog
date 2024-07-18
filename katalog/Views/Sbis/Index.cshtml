@@ -17,6 +17,7 @@
             Категория
         </button>
         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+            <li><a class="dropdown-item" href="/">Все</a></li>
             @foreach (var item in Model.Categories)
             {
                 <li><a class="dropdown-item" href="/@item.HierarchicalId">@item.Name</a></li>

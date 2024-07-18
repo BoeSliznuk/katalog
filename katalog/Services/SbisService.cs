@@ -108,6 +108,25 @@ namespace katalog.Services
             }
             return null;
         }
+        private async Task<List<Product>?> GetCatalogByName(string name)
+        {
+            await GetPriceListId();
+            string catalogUrl = "retail/nomenclature/list";
+            NameValueCollection requestParams = new()
+              {
+                { "pointId", pointId },
+                { "priceListId", priceListId },
+                {"onlyPublished", "true" },
+                {"pageSize", "10000" },
+                {"searchString", name }
+              };
+            var response = await SendRequestAsync<ProductResponse>(HttpMethod.Get, catalogUrl, requestParams);
+            if (response != null && response.Products.Count > 0)
+            {
+                return response.Products;
+            }
+            return null;
+        }
         public async Task<List<Product>?> GetCategories()
         {
             List<Product>? allProducts = await GetCatalog();
@@ -194,6 +213,12 @@ namespace katalog.Services
             List<Product>? allProducts = await GetCatalog();
             if (allProducts == null) return null;
             return allProducts.Where(x => x.HierarchicalParent == hierarchicalParent).ToList();
+        }
+        public async Task<List<Product>?> GetProductsSearched(string search)
+        {
+            List<Product>? allProducts = await GetCatalogByName(search);
+            if (allProducts == null) return null;
+            return allProducts.Where(x => x.HierarchicalParent != null && x.Published).ToList();
         }
         public async Task<byte[]> GetImage(string url)
         {

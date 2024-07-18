@@ -22,6 +22,8 @@ namespace katalog.SbisData
         public double? Cost { get; set; }
         [JsonPropertyName("isParent")]
         public bool? IsParent { get; set; }
-        
+        [JsonPropertyName("published")]
+        public bool Published { get; set; }
+
     }
 }
