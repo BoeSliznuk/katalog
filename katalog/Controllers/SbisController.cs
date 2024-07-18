@@ -17,8 +17,17 @@ namespace katalog.Controllers
         public async Task<IActionResult> Index()
         {
             await _sbisService.Auth();
-            List<Product> categories =  await _sbisService.GetCategories();
-            List<Product> products = await _sbisService.GetProducts();
+            List<Product>? categories =  await _sbisService.GetCategories();
+            List<Product>? products = await _sbisService.GetProducts();
+            var vm = new CatalogViewModel() { Categories = categories, Products = products };
+            return View(vm);
+        }
+        [HttpGet("/{parentId}")]
+        public async Task<IActionResult> Index(int parentId)
+        {
+            await _sbisService.Auth();
+            List<Product>? categories = await _sbisService.GetCategories();
+            List<Product>? products = await _sbisService.GetProducts(parentId);
             var vm = new CatalogViewModel() { Categories = categories, Products = products };
             return View(vm);
         }
