@@ -1,5 +1,6 @@
 ﻿using katalog.SbisData;
 using katalog.Services.Interfaces;
+using katalog.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,12 +17,14 @@ namespace katalog.Controllers
         public async Task<IActionResult> Index()
         {
             await _sbisService.Auth();
-            List<Product> products =  await _sbisService.GetCategories();
+            List<Product> categories =  await _sbisService.GetCategories();
+            List<Product> products = await _sbisService.GetProducts();
             foreach (var product in products)
             {
                 Console.WriteLine(product.Name);
             }
-            return View();
+            var vm = new CatalogViewModel() { Categories = categories, Products = products };
+            return View(vm);
         }
     }
 }

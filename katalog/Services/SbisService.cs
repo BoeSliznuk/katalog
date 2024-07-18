@@ -115,6 +115,7 @@ namespace katalog.Services
             if (allProducts == null) return null;
             return allProducts.Where(x => x.IsParent != null && (bool)x.IsParent).ToList();
         }
+
         private string? SerializeParameters(NameValueCollection parameters)
         {
             if (parameters.Count != 0)
@@ -180,6 +181,20 @@ namespace katalog.Services
                 request.Headers.Add("X-SBISAccessToken", this.token);
             }
             return request;
+        }
+
+        public async Task<List<Product>?> GetProducts()
+        {
+            List<Product>? allProducts = await GetCatalog();
+            if (allProducts == null) return null;
+            return allProducts.Where(x => x.HierarchicalParent != null).ToList();
+        }
+
+        public async Task<List<Product>?> GetProducts(int hierarchicalParent)
+        {
+            List<Product>? allProducts = await GetCatalog();
+            if (allProducts == null) return null;
+            return allProducts.Where(x => x.HierarchicalParent == hierarchicalParent).ToList();
         }
     }
 

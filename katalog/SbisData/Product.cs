@@ -18,7 +18,10 @@ namespace katalog.SbisData
         public string? DescriptionSimple { get; set; }
         [JsonPropertyName("images")]
         public List<string>? Images { get; set; }
+        [JsonPropertyName("cost")]
+        public double? Cost { get; set; }
         [JsonPropertyName("isParent")]
         public bool? IsParent { get; set; }
+        
     }
 }
