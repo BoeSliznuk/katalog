@@ -15,6 +15,7 @@ namespace katalog.Services
         private string? token;
         private string? sid;
         private string baseUrl = "https://api.sbis.ru";
+        private string authUrl = "https://online.sbis.ru";
         private string clientId = "3067279040044919";
         private string appSecret = "KM59TNUJ17XGC4MTNX9ZUCNB";
         private string secretKey = "8AcBv0Gw5wi5jZoJqgqyMkLQSLwynBk8Y4pMmRMiAjDBMHLfeVv015uvL3ZCBRbMf1dU0D8n1VlgaCwKBUxKogSXaynBjgsV6u4DfO9l3TxXdRbvu6Kd6j";
@@ -30,14 +31,14 @@ namespace katalog.Services
         }
         private async Task<AuthResponse?> GetServiceToken()
         {
-            string authUrl = "https://online.sbis.ru/oauth/service";
+            string authUrl = "oauth/service";
             NameValueCollection requestParams = new()
               {
                 { "app_client_id", clientId },
                 { "app_secret", appSecret },
                 { "secret_key", secretKey }
               };
-            var request = await SendRequestAsync<AuthResponse>(HttpMethod.Post, authUrl, requestParams);
+            var request = await SendRequestAsync<AuthResponse>(HttpMethod.Post, authUrl, requestParams, true);
             return request;
         }
         private string? SerializeParameters(NameValueCollection parameters)
@@ -54,13 +55,12 @@ namespace katalog.Services
                 return null;
             }
         }
-        private async Task<T?> SendRequestAsync<T>(HttpMethod httpMethod, string entity, NameValueCollection parameters)
+        private async Task<T?> SendRequestAsync<T>(HttpMethod httpMethod, string entity, NameValueCollection parameters, bool auth = false)
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var queryString = SerializeParameters(parameters);
-            Console.WriteLine(queryString);
-            var url = BuildUrl(entity: entity, queryString: queryString);
+            var url = BuildUrl(entity: entity, queryString: queryString, auth);
             using (var httpRequest = CreateHttpRequest(verb: httpMethod, url: url))
             using (var httpResponse = await client.SendAsync(httpRequest))
             {
@@ -84,9 +84,9 @@ namespace katalog.Services
                 return System.Text.Json.JsonSerializer.Deserialize<T>(apiResponse);
             }
         }
-        private string BuildUrl(string entity, string? queryString = null)
+        private string BuildUrl(string entity, string? queryString = null, bool auth = false)
         {
-            var url = baseUrl;
+            var url = auth? authUrl : baseUrl;
             if (!String.IsNullOrEmpty(entity))
             {
                 url = String.Format("{0}/{1}", url, entity);
