@@ -14,7 +14,7 @@ namespace katalog.Services
     {
         private string? token;
         private string? sid;
-        private string baseUrl = "https://online.sbis.ru";
+        private string baseUrl = "https://api.sbis.ru";
         private string clientId = "3067279040044919";
         private string appSecret = "KM59TNUJ17XGC4MTNX9ZUCNB";
         private string secretKey = "8AcBv0Gw5wi5jZoJqgqyMkLQSLwynBk8Y4pMmRMiAjDBMHLfeVv015uvL3ZCBRbMf1dU0D8n1VlgaCwKBUxKogSXaynBjgsV6u4DfO9l3TxXdRbvu6Kd6j";
@@ -30,7 +30,7 @@ namespace katalog.Services
         }
         private async Task<AuthResponse?> GetServiceToken()
         {
-            string authUrl = "oauth/service";
+            string authUrl = "https://online.sbis.ru/oauth/service";
             NameValueCollection requestParams = new()
               {
                 { "app_client_id", clientId },
