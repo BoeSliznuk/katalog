@@ -60,11 +60,18 @@ namespace katalog.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToCart(int productId, int quantity)
         {
-            List<Product>? products = await _sbisService.GetProducts();
             var cart = string.IsNullOrEmpty(HttpContext.Session.GetString("cart")) ? new Cart() : JsonSerializer.Deserialize<Cart>(HttpContext.Session.GetString("cart"));
-            var addedProduct = products.Where(x => x.Id == productId).First();
-            addedProduct.ProdCount = quantity;
-            cart.Products.Add(addedProduct);
+            if(cart.Products.Where(x=> x.Id == productId).Count() > 0)
+            {
+                cart.Products.First(x => x.Id == productId).ProdCount += quantity;
+            }
+            else
+            {
+                List<Product>? products = await _sbisService.GetProducts();
+                var addedProduct = products.Where(x => x.Id == productId).First();
+                addedProduct.ProdCount = quantity;
+                cart.Products.Add(addedProduct);
+            }
             HttpContext.Session.SetString("cart", JsonSerializer.Serialize(cart));
             return RedirectToAction("Cart");
         }
@@ -73,6 +80,31 @@ namespace katalog.Controllers
         {
             var cart = string.IsNullOrEmpty(HttpContext.Session.GetString("cart")) ? new Cart() : JsonSerializer.Deserialize<Cart>(HttpContext.Session.GetString("cart"));
             return View(cart);
+        }
+        [HttpPost]
+        public async Task<IActionResult> Order(string name, string phone)
+        {
+            var cart = string.IsNullOrEmpty(HttpContext.Session.GetString("cart")) ? new Cart() : JsonSerializer.Deserialize<Cart>(HttpContext.Session.GetString("cart"));
+            var Order = new Order()
+            {
+                Name = name,
+                Phone = phone,
+                Cart = cart
+            };
+            string output = JsonSerializer.Serialize(Order);
+            var rand = new Random();
+            System.IO.File.WriteAllText(Directory.GetCurrentDirectory() + "/Orders/"+ "order" + rand.Next() + ".json", output);
+            cart = new Cart();
+            HttpContext.Session.SetString("cart", JsonSerializer.Serialize(cart));
+            return RedirectToAction("Index");
+        }
+        public async Task<IActionResult> DeleteFromCart(int productId)
+        {
+            Console.WriteLine(productId);
+            var cart = string.IsNullOrEmpty(HttpContext.Session.GetString("cart")) ? new Cart() : JsonSerializer.Deserialize<Cart>(HttpContext.Session.GetString("cart"));
+            cart.Products = cart.Products.Where(x => x.Id != productId).ToList();
+            HttpContext.Session.SetString("cart", JsonSerializer.Serialize(cart));
+            return RedirectToAction("Cart");
         }
     }
 }

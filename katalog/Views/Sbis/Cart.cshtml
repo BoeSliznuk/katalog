@@ -16,19 +16,21 @@
                                 <div class="row mt-4">
                                     <div class="col"><p class="text-muted mb-2">ДЕТАЛИ ОПЛАТЫ</p><hr class="mt-0"></div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="NAME" class="small text-muted mb-1">ИМЯ</label>
-                                    <input type="text" class="form-control form-control-sm" name="NAME" id="NAME" aria-describedby="helpId" placeholder="Ваше имя" />
-                                </div>
-                                <div class="form-group">
-                                    <label for="NAME" class="small text-muted mb-1">НОМЕР ТЕЛЕФОНА</label>
-                                    <input type="text" class="form-control form-control-sm" name="PHONE" id="PHONE" aria-describedby="helpId" placeholder="79998887766">
-                                </div>
-                                <div class="row mb-md-5" style="margin-top: 50px">
-                                    <div class="col">
-                                        <button type="button" class="btn btn-primary">Заказать</button>
+                                <form asp-controller="Sbis" asp-action="Order" method="post">
+                                    <div class="form-group">
+                                        <label for="NAME" class="small text-muted mb-1">ИМЯ</label>
+                                        <input type="text" class="form-control form-control-sm" name="name" id="NAME" aria-describedby="helpId" placeholder="Ваше имя" />
                                     </div>
-                                </div>    
+                                    <div class="form-group">
+                                        <label for="NAME" class="small text-muted mb-1">НОМЕР ТЕЛЕФОНА</label>
+                                        <input type="text" class="form-control form-control-sm" name="phone" id="PHONE" aria-describedby="helpId" placeholder="79998887766">
+                                    </div>
+                                    <div class="row mb-md-5" style="margin-top: 50px">
+                                        <div class="col">
+                                            <button type="submit" class="btn btn-primary">Заказать</button>
+                                        </div>
+                                    </div>  
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -59,6 +61,12 @@
                                             </div>
                                             <div class=" pl-0 flex-sm-col col-auto  my-auto"> <p class="boxed-1">@item.ProdCount шт.</p></div>
                                             <div class=" pl-0 flex-sm-col col-auto  my-auto "><p><b>@item.Cost р.</b></p></div>
+                                            <a asp-controller="Sbis" asp-action="DeleteFromCart" asp-route-productId="@item.Id" style="width: 25px; height: 25px; background-color: orange; display: flex; flex-direction: row; justify-content: center; padding: 0px; align-items: center" type="button" class="btn btn-light">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                                                    <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+                                                </svg>
+                                            </a>
                                         </div>
                                         <hr class="my-2">
                                     }                               
