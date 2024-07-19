@@ -4,6 +4,7 @@ using katalog.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace katalog.Controllers
 {
@@ -58,6 +59,13 @@ namespace katalog.Controllers
             await _sbisService.Auth();
             var response = await _sbisService.GetImage(url);
             return File(response, "image/png");
+        }
+        [HttpPost]
+        public IActionResult AddToCart(int productId, int quantity)
+        {
+            Console.WriteLine(productId);
+            Console.WriteLine(quantity);
+            return Ok();
         }
     }
 }
