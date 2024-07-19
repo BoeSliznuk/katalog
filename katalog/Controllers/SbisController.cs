@@ -1,4 +1,5 @@
-﻿using katalog.SbisData;
+﻿using katalog.Models;
+using katalog.SbisData;
 using katalog.Services.Interfaces;
 using katalog.ViewModels;
 using Microsoft.AspNetCore.Http;
@@ -31,11 +32,7 @@ namespace katalog.Controllers
             var vm = new CatalogViewModel() { Categories = categories, Products = products };
             return View(vm);
         }
-        [HttpGet("/cart")]
-        public async Task<IActionResult> Cart()
-        {
-            return View();
-        }
+
         [HttpGet("/{parentId}")]
         public async Task<IActionResult> Index(int parentId)
         {
@@ -61,11 +58,21 @@ namespace katalog.Controllers
             return File(response, "image/png");
         }
         [HttpPost]
-        public IActionResult AddToCart(int productId, int quantity)
+        public async Task<IActionResult> AddToCart(int productId, int quantity)
         {
-            Console.WriteLine(productId);
-            Console.WriteLine(quantity);
-            return Ok();
+            List<Product>? products = await _sbisService.GetProducts();
+            var cart = string.IsNullOrEmpty(HttpContext.Session.GetString("cart")) ? new Cart() : JsonSerializer.Deserialize<Cart>(HttpContext.Session.GetString("cart"));
+            var addedProduct = products.Where(x => x.Id == productId).First();
+            addedProduct.ProdCount = quantity;
+            cart.Products.Add(addedProduct);
+            HttpContext.Session.SetString("cart", JsonSerializer.Serialize(cart));
+            return RedirectToAction("Cart");
+        }
+        [HttpGet("/Сart")]
+        public async Task<IActionResult> Cart()
+        {
+            var cart = string.IsNullOrEmpty(HttpContext.Session.GetString("cart")) ? new Cart() : JsonSerializer.Deserialize<Cart>(HttpContext.Session.GetString("cart"));
+            return View(cart);
         }
     }
 }
