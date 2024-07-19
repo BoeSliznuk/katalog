@@ -26,7 +26,7 @@ namespace katalog.SbisData
         public bool Published { get; set; }
 
 
-        public double? ProdCount { get; set; }
+        public double? ProdCount { get; set; } = 0;
         
     }
 }

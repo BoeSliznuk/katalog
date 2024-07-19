@@ -19,12 +19,12 @@ namespace katalog.Controllers
             await _sbisService.Auth();
             List<Product> categories =  await _sbisService.GetCategories();
             List<Product>? products = String.IsNullOrEmpty(search) ? products = await _sbisService.GetProducts() : await _sbisService.GetProductsSearched(search);
-            List<Balances> balances = await _sbisService.GetRemains();
-            foreach(var item in balances)
+            List<Balances> balances = await _sbisService.GetRemains(products.Select(x => x.Id).ToList());
+            foreach (Product product in products)
             {
-                if (products.Where(x => x.Id == item.Nomenclature).FirstOrDefault() != null)
+                if (balances.Where(x => x.Nomenclature == product.Id).FirstOrDefault() != null)
                 {
-                    products.Where(x => x.Id == item.Nomenclature).First().ProdCount = item.Balance;
+                    product.ProdCount = balances.Where(x => x.Nomenclature == product.Id).First().Balance;
                 }
             }
             var vm = new CatalogViewModel() { Categories = categories, Products = products };
@@ -36,12 +36,12 @@ namespace katalog.Controllers
             await _sbisService.Auth();
             List<Product>? categories = await _sbisService.GetCategories();
             List<Product>? products = await _sbisService.GetProducts(parentId);
-            List<Balances> balances = await _sbisService.GetRemains();
-            foreach (var item in balances)
+            List<Balances> balances = await _sbisService.GetRemains(products.Select(x => x.Id).ToList());
+            foreach (Product product in products)
             {
-                if (products.Where(x => x.Id == item.Nomenclature).FirstOrDefault() != null)
+                if (balances.Where(x => x.Nomenclature == product.Id).FirstOrDefault() != null)
                 {
-                    products.Where(x => x.Id == item.Nomenclature).First().ProdCount = item.Balance;
+                    product.ProdCount = balances.Where(x => x.Nomenclature == product.Id).First().Balance;
                 }
             }
             var vm = new CatalogViewModel() { Categories = categories, Products = products };
