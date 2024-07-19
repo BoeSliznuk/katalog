@@ -30,6 +30,11 @@ namespace katalog.Controllers
             var vm = new CatalogViewModel() { Categories = categories, Products = products };
             return View(vm);
         }
+        [HttpGet("/cart")]
+        public async Task<IActionResult> Cart()
+        {
+            return View();
+        }
         [HttpGet("/{parentId}")]
         public async Task<IActionResult> Index(int parentId)
         {
