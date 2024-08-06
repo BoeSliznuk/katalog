@@ -23,6 +23,7 @@ namespace katalog.Services
         private string clientId = "3067279040044919";
         private string appSecret = "KM59TNUJ17XGC4MTNX9ZUCNB";
         private string secretKey = "8AcBv0Gw5wi5jZoJqgqyMkLQSLwynBk8Y4pMmRMiAjDBMHLfeVv015uvL3ZCBRbMf1dU0D8n1VlgaCwKBUxKogSXaynBjgsV6u4DfO9l3TxXdRbvu6Kd6j";
+        private DateTime lastUpdated;
 
         public async Task Auth()
         {
@@ -95,8 +96,9 @@ namespace katalog.Services
         }
         private async Task GetCatalog()
         {
-            if (allProducts == null)
+            if (allProducts == null || DateTime.UtcNow >= lastUpdated.AddMinutes(55))
             {
+                lastUpdated = DateTime.UtcNow;
                 await GetPriceListId();
                 string catalogUrl = "retail/nomenclature/list";
                 NameValueCollection requestParams = new()
