@@ -20,7 +20,15 @@ namespace katalog.Controllers
         {
             await _sbisService.Auth();
             List<Product> categories =  await _sbisService.GetCategories();
+            if (categories == null)
+            {
+                return NotFound();
+            }
             List<Product>? products = String.IsNullOrEmpty(search) ? products = await _sbisService.GetProducts() : await _sbisService.GetProductsSearched(search);
+            if (products == null)
+            {
+                return NotFound();
+            }
             List<Balances> balances = await _sbisService.GetRemains(products.Select(x => x.Id).ToList());
             foreach (Product product in products)
             {
@@ -38,7 +46,15 @@ namespace katalog.Controllers
         {
             await _sbisService.Auth();
             List<Product>? categories = await _sbisService.GetCategories();
+            if (categories == null)
+            {
+                return NotFound();
+            }
             List<Product>? products = await _sbisService.GetProducts(parentId);
+            if (products == null)
+            {
+                return NotFound();
+            }
             List<Balances> balances = await _sbisService.GetRemains(products.Select(x => x.Id).ToList());
             foreach (Product product in products)
             {
@@ -55,6 +71,10 @@ namespace katalog.Controllers
         {
             await _sbisService.Auth();
             var response = await _sbisService.GetImage(url);
+            if (response == null)
+            {
+                return NotFound();
+            }
             return File(response, "image/png");
         }
         [HttpPost]
@@ -68,7 +88,15 @@ namespace katalog.Controllers
             else
             {
                 List<Product>? products = await _sbisService.GetProducts();
+                if (products == null)
+                {
+                    return NotFound();
+                }
                 var addedProduct = products.Where(x => x.Id == productId).First();
+                if (addedProduct == null)
+                {
+                    return NotFound();
+                }
                 addedProduct.ProdCount = quantity;
                 cart.Products.Add(addedProduct);
             }
@@ -100,7 +128,6 @@ namespace katalog.Controllers
         }
         public async Task<IActionResult> DeleteFromCart(int productId)
         {
-            Console.WriteLine(productId);
             var cart = string.IsNullOrEmpty(HttpContext.Session.GetString("cart")) ? new Cart() : JsonSerializer.Deserialize<Cart>(HttpContext.Session.GetString("cart"));
             cart.Products = cart.Products.Where(x => x.Id != productId).ToList();
             HttpContext.Session.SetString("cart", JsonSerializer.Serialize(cart));
